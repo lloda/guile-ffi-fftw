@@ -1,6 +1,7 @@
 
 ; Access FFTW through Guile's FFI.
 ; (c) Daniel Llorens - 2014
+; This is released and should depend only on standard Guile.
 
 ; This library is free software; you can redistribute it and/or modify it under
 ; the terms of the GNU General Public License as published by the Free
@@ -18,13 +19,13 @@
 ;;                              fftw_complex *in, fftw_complex *out,
 ;;                              int sign, unsigned flags);
 
-(define fftw-plan-guru-dft
+(define fftw_plan_guru_dft
   (pointer->procedure '* (dynamic-func "fftw_plan_guru_dft" libfftw3)
                       (list int32 '* int32 '* '* '* int32 uint32)))
-(define fftw-execute
+(define fftw_execute
   (pointer->procedure void (dynamic-func "fftw_execute" libfftw3)
                       (list '*)))
-(define fftw-destroy-plan
+(define fftw_destroy_plan
   (pointer->procedure void (dynamic-func "fftw_destroy_plan" libfftw3)
                       (list '*)))
 
@@ -81,19 +82,19 @@ See http://www.fftw.org/doc/FFTW-Reference.html for more information."
     (throw 'fftw-mismatched-ranks (array-rank out) (array-rank out)))
   (when (not (eq? 'c64 (array-type in) (array-type out)))
     (throw 'fftw-bad-types (array-type in) (array-type out)))
-  (when (and (not (= +1 sign)) (not (= -1 sign)))
+  (when (not (or (= +1 sign) (= -1 sign)))
     (throw 'fftw-bad-sign sign))
   (let* ((iodims (make-iodims in out))
          (transform-k k)
          (repeat-k (- (array-rank in) k))
-         (plan (fftw-plan-guru-dft
+         (plan (fftw_plan_guru_dft
                 transform-k (pick-iodims iodims transform-k take-right)
                 repeat-k (pick-iodims iodims repeat-k take)
                 (bytevector->pointer (shared-array-root in) (* (shared-array-offset in) (sizeof double) 2))
                 (bytevector->pointer (shared-array-root out) (* (shared-array-offset out) (sizeof double) 2))
                 sign FFTW-ESTIMATE)))
-    (fftw-execute plan)
-    (fftw-destroy-plan plan)))
+    (fftw_execute plan)
+    (fftw_destroy_plan plan)))
 
 (define (fftw-dft k sign in)
   "fftw-dft k sign in
