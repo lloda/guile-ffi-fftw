@@ -21,7 +21,7 @@
 
 (define fftw_plan_guru_dft
   (pointer->procedure '* (dynamic-func "fftw_plan_guru_dft" libfftw3)
-                      (list int32 '* int32 '* '* '* int32 uint32)))
+                      (list int '* int '* '* '* int unsigned-int)))
 (define fftw_execute
   (pointer->procedure void (dynamic-func "fftw_execute" libfftw3)
                       (list '*)))
@@ -36,7 +36,7 @@
 ;; http://www.fftw.org/doc/Guru-vector-and-transform-sizes.html#Guru-vector-and-transform-sizes
 
 (define make-iodims
-  (let ((lim (- (ash 1 31) 1)))
+  (let ((lim (+ -1 (ash 1 (+ -1 (* 8 (sizeof int)))))))
     (lambda (in out)
       (append-map (lambda (s-in i-in s-out i-out)
                     (when (> (max lim s-in i-in s-out i-out) lim) (throw 'fftw-sizes-too-large))
@@ -49,8 +49,8 @@
 
 (define (pick-iodims iodims n pick)
   (if (zero? n)
-    (make-c-struct (list int32) (list 0))
-    (make-c-struct (make-list (* 3 n) int32) (pick iodims (* 3 n)))))
+    (make-c-struct (list int) (list 0))
+    (make-c-struct (make-list (* 3 n) int) (pick iodims (* 3 n)))))
 
 (define (fftw-dft! k sign in out)
   "fftw-dft! k sign in out
