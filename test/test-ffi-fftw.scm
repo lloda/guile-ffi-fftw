@@ -10,42 +10,65 @@
 
 (import (ffi fftw) (srfi srfi-64) (srfi srfi-1))
 
+; Various sorts of arrays.
+
+(define (make-A-compact)
+  (make-typed-array 'c64 0 2 2 2))
+
+(define (make-A-strided)
+  (make-shared-array (make-typed-array 'c64 0 8 8 8) (lambda i (map * i '(2 3 4))) 2 2 2))
+
+(define (make-A-offset)
+  (make-shared-array (make-typed-array 'c64 0 8 8 8) (lambda i (map + i '(2 3 4))) 2 2 2))
+
 ; Test variable rank feature for (fftw-dft!).
 
-(test-begin "fftw-dft! ones")
-(define A (make-typed-array 'c64 1 2 2 2))
-(define B1 (make-typed-array 'c64 1 2 2 2))
-(fftw-dft! 1 +1 A B1)
-(test-equal A (make-typed-array 'c64 1 2 2 2))
-(test-equal B1 #3c64(((2 0) (2 0)) ((2 0) (2 0))))
-(define B2 (make-typed-array 'c64 1 2 2 2))
-(fftw-dft! 2 +1 A B2)
-(test-equal A (make-typed-array 'c64 1 2 2 2))
-(test-equal B2 #3c64(((4 0) (0 0)) ((4 0) (0 0))))
-(define B3 (make-typed-array 'c64 1 2 2 2))
-(fftw-dft! 3 +1 A B3)
-(test-equal A (make-typed-array 'c64 1 2 2 2))
-(test-equal B3 #3c64(((8 0) (0 0)) ((0 0) (0 0))))
-(test-end "fftw-dft! ones")
+(define (case-fftw-dft!-ones tag make-A make-B)
+  (let ((case-name (format #f "fftw-dft! ones, ~a" tag))
+        (ref (make-typed-array 'c64 1 2 2 2))
+        (A (make-A))
+        (B (make-B)))
+    (array-fill! A 1.)
+    (test-begin case-name)
+    (array-fill! B 11.)
+    (fftw-dft! 1 +1 A B)
+    (test-equal B #3c64(((2 0) (2 0)) ((2 0) (2 0))))
+    (test-equal A ref)
+    (array-fill! B 22.)
+    (fftw-dft! 2 +1 A B)
+    (test-equal B #3c64(((4 0) (0 0)) ((4 0) (0 0))))
+    (test-equal A ref)
+    (array-fill! B 33.)
+    (fftw-dft! 3 +1 A B)
+    (test-equal B #3c64(((8 0) (0 0)) ((0 0) (0 0))))
+    (test-equal A ref)
+    (test-end case-name)))
+
+(case-fftw-dft!-ones "compact-compact" make-A-compact make-A-compact)
+(case-fftw-dft!-ones "compact-strided" make-A-compact make-A-strided)
+(case-fftw-dft!-ones "compact-offset" make-A-compact make-A-offset)
+(case-fftw-dft!-ones "strided-compact" make-A-strided make-A-compact)
+(case-fftw-dft!-ones "strided-strided" make-A-strided make-A-strided)
+(case-fftw-dft!-ones "strided-offset" make-A-strided make-A-offset)
+(case-fftw-dft!-ones "offset-compact" make-A-offset make-A-compact)
+(case-fftw-dft!-ones "offset-strided" make-A-offset make-A-strided)
+(case-fftw-dft!-ones "offset-offset" make-A-offset make-A-offset)
 
 ; Test variable rank feature for (fftw-dft).
 
-(test-begin "fftw-dft ones")
-(define A (make-typed-array 'c64 1 2 2 2))
-(test-equal (fftw-dft 1 +1 A) #3c64(((2 0) (2 0)) ((2 0) (2 0))))
-(test-equal (fftw-dft 2 +1 A) #3c64(((4 0) (0 0)) ((4 0) (0 0))))
-(test-equal (fftw-dft 3 +1 A) #3c64(((8 0) (0 0)) ((0 0) (0 0))))
-(test-end "fftw-dft ones")
+(define (case-fftw-dft-ones tag A)
+  (let ((case-name (format #f "fftw-dft ones, ~a" tag)))
+    (array-fill! A 1.)
+    (test-begin case-name)
+    (test-equal (fftw-dft 1 +1 A) #3c64(((2 0) (2 0)) ((2 0) (2 0))))
+    (test-equal (fftw-dft 2 +1 A) #3c64(((4 0) (0 0)) ((4 0) (0 0))))
+    (test-equal (fftw-dft 3 +1 A) #3c64(((8 0) (0 0)) ((0 0) (0 0))))
+    (test-end case-name)))
 
-; Test variable rank feature for (fftw-dft) with nonstandard strides. FIXME:
-; parameterize on input array.
-
-(test-begin "fftw-dft ones, nonstandard strides I")
-(define A (make-shared-array (make-typed-array 'c64 1.) (lambda i '()) 2 2 2))
-(test-equal (fftw-dft 1 +1 A) #3c64(((2 0) (2 0)) ((2 0) (2 0))))
-(test-equal (fftw-dft 2 +1 A) #3c64(((4 0) (0 0)) ((4 0) (0 0))))
-(test-equal (fftw-dft 3 +1 A) #3c64(((8 0) (0 0)) ((0 0) (0 0))))
-(test-end "fftw-dft ones, nonstandard strides I")
+(case-fftw-dft-ones "fresh array" (make-A-compact))
+(case-fftw-dft-ones "strided" (make-A-strided))
+(case-fftw-dft-ones "offset" (make-A-offset))
+(case-fftw-dft-ones "reshaped scalar" (make-shared-array (make-typed-array 'c64 0.) (lambda i '()) 2 2 2))
 
 ; Test signs.
 

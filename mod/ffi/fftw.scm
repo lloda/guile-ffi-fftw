@@ -36,11 +36,11 @@
 ;; http://www.fftw.org/doc/Guru-vector-and-transform-sizes.html#Guru-vector-and-transform-sizes
 
 (define make-iodims
-  (let ((lim (+ -1 (ash 1 (+ -1 (* 8 (sizeof int)))))))
+  (let ((lim (ash 1 (+ -1 (* 8 (sizeof int))))))
     (lambda (in out)
       (append-map (lambda (s-in i-in s-out i-out)
-                    (when (> (max lim s-in i-in s-out i-out) lim) (throw 'fftw-sizes-too-large))
-                    (when (not (= s-in s-out)) (throw 'fftw-mismatched-dimensions))
+                    (unless (= lim (max lim s-in i-in s-out i-out)) (throw 'fftw-sizes-too-large))
+                    (unless (= s-in s-out) (throw 'fftw-mismatched-dimensions))
                     (list s-in i-in i-out))
                   (array-dimensions in)
                   (shared-array-increments in)
@@ -76,13 +76,13 @@ IN.
 
 See http://www.fftw.org/doc/FFTW-Reference.html for more information."
 
-  (when (not (<= 0 k (array-rank in)))
-    (throw 'fftw-bad-rank))
-  (when (not (= (array-rank out) (array-rank out)))
+  (unless (<= 0 k (array-rank in))
+    (throw 'fftw-bad-rank k (array-rank in)))
+  (unless (= (array-rank out) (array-rank out))
     (throw 'fftw-mismatched-ranks (array-rank out) (array-rank out)))
-  (when (not (eq? 'c64 (array-type in) (array-type out)))
+  (unless (eq? 'c64 (array-type in) (array-type out))
     (throw 'fftw-bad-types (array-type in) (array-type out)))
-  (when (not (or (= +1 sign) (= -1 sign)))
+  (unless (or (= +1 sign) (= -1 sign))
     (throw 'fftw-bad-sign sign))
   (let* ((iodims (make-iodims in out))
          (transform-k k)
