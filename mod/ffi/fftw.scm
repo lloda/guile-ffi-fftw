@@ -11,7 +11,11 @@
 (define-module (ffi fftw))
 (import (system foreign) (srfi srfi-1))
 
-(define libfftw3 (dynamic-link "libfftw3"))
+; @TODO As an alternative go through installation.
+(define libfftw3 (dynamic-link (let ((lpath (getenv "GUILE_FFI_FFTW_LIBFFTW3_PATH")))
+                                 (if (and lpath (not (string=? lpath "")))
+                                   (string-append lpath file-name-separator-string "libfftw3")
+                                   "libfftw3"))))
 
 ;; http://www.fftw.org/doc/Guru-Complex-DFTs.html#Guru-Complex-DFTs
 ;; fftw_plan fftw_plan_guru_dft(int rank, const fftw_iodim *dims,
