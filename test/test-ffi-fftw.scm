@@ -109,3 +109,6 @@
 (test-approximate 0 (delta-error +1 2 3 4) 5e-15)
 (test-approximate 0 (delta-error -1 2 3 4) 5e-15)
 (test-end "fftw-dft deltas")
+
+(unless (zero? (test-runner-fail-count (test-runner-current)))
+  (error "FAILED test-ffi-fftw.csm"))
