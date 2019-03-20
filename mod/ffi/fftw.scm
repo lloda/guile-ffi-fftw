@@ -1,12 +1,14 @@
 
-; Access FFTW through Guile's FFI.
-; (c) Daniel Llorens - 2014
-; This is released and should depend only on standard Guile.
+; (c) Daniel Llorens - 2014, 2019
 
 ; This library is free software; you can redistribute it and/or modify it under
 ; the terms of the GNU General Public License as published by the Free
 ; Software Foundation; either version 3 of the License, or (at your option) any
 ; later version.
+
+;;; Commentary:
+;; Access FFTW through Guile's FFI.
+;;; Code:
 
 (define-module (ffi fftw))
 (import (system foreign) (srfi srfi-1))
@@ -62,10 +64,10 @@
 Compute K-dimensional DFTs of array IN into array OUT, with given SIGN.  IN and
 OUT must be 'c64 arrays of the same shape. For each K-cell of IN, a separate
 K-DFT is computed and written in the corresponding cell of OUT.  SIGN is the
-sign of the exponent of the transform.  For example, if IN has shape (2 2 10
-10), then after
+sign of the exponent of the transform and can be FFTW-FORWARD (-1) or
+FFTW-BACKWARD (+1).  For example, if IN has shape (2 2 10 10), then after
 
- (fftw-dft! 2 -1 IN OUT)
+ (fftw-dft! 2 FFTW-FORWARD IN OUT)
 
 we have
 
