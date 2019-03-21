@@ -9,7 +9,7 @@ It provides two functions:
 * `fftw-dft! rank sign in out`
 * `fftw-dft rank sign in`
 
-These bindings being minimal, there is no support for computing & reusing plans, or split r/i transforms, or anything other than straight complex DFTs. There is a basic test suite using SRFI-64. Contributions are welcome.
+These bindings being minimal, there is no support for computing & reusing plans, or split r/i transforms, or anything other than straight complex DFTs. Contributions are welcome!
 
 I think the bindings provide a good example of how to interface from Guile with array libraries taking dense arrays as arguments. FFTW is nice in this respect, because it supports arbitrary strides —which should be the norm really!
 
