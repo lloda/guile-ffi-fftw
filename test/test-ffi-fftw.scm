@@ -10,6 +10,9 @@
 
 (import (ffi fftw) (srfi srfi-64) (srfi srfi-1))
 
+(set! test-log-to-file #f)
+(test-begin "ffi-fftw")
+
 ; Various sorts of arrays.
 
 (define (make-A-compact)
@@ -110,4 +113,6 @@
 (test-approximate 0 (delta-error -1 2 3 4) 5e-15)
 (test-end "fftw-dft deltas")
 
-(exit (test-runner-fail-count (test-runner-current)))
+(define error-count (test-runner-fail-count (test-runner-current)))
+(test-end "ffi-fftw")
+(exit error-count)
