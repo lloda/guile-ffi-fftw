@@ -42,9 +42,10 @@
     (test-equal B #3c64(((4 0) (0 0)) ((4 0) (0 0))))
     (test-equal A ref)
     (array-fill! B 33.)
-    (fftw-dft! 3 +1 A B)
-    (test-equal B #3c64(((8 0) (0 0)) ((0 0) (0 0))))
-    (test-equal A ref)
+    (let ((C (fftw-dft! 3 +1 A B)))
+      (test-equal B #3c64(((8 0) (0 0)) ((0 0) (0 0))))
+      (test-equal A ref)
+      (test-eq B C))
     (test-end case-name)))
 
 (case-fftw-dft!-ones "compact-compact" make-A-compact make-A-compact)

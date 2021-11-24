@@ -59,28 +59,38 @@
     (make-c-struct (make-list (* 3 n) int) (pick iodims (* 3 n)))))
 
 (define (fftw-dft! k sign in out)
-  "fftw-dft! k sign in out
+  "Compute @var{k}-dimensional DFTs of array @var{in} with given @var{sign}, and
+write them to array @var{out}.  @var{in} and @var{out} must be c64 arrays of the
+same shape. For each @var{k}-cell of @var{in}, a separate @var{k}-DFT is
+computed and written to the matching cell of @var{out}.  @var{sign} is the sign
+of the exponent of the transform and can be @code{FFTW-FORWARD} (-1) or
+@code{FFTW-BACKWARD} (+1).  For example, if @var{in} has shape @code{(2 2 10
+10)}, then after
 
-Compute K-dimensional DFTs of array IN into array OUT, with given SIGN.  IN and
-OUT must be 'c64 arrays of the same shape. For each K-cell of IN, a separate
-K-DFT is computed and written in the corresponding cell of OUT.  SIGN is the
-sign of the exponent of the transform and can be FFTW-FORWARD (-1) or
-FFTW-BACKWARD (+1).  For example, if IN has shape (2 2 10 10), then after
-
+@lisp
  (fftw-dft! 2 FFTW-FORWARD IN OUT)
+@end lisp
 
 we have
 
- OUT[0, 0, ...] = 2D-DFT(IN[0, 0, ...])
- OUT[0, 1, ...] = 2D-DFT(IN[0, 1, ...])
- OUT[1, 0, ...] = 2D-DFT(IN[1, 0, ...])
- OUT[1, 1, ...] = 2D-DFT(IN[1, 1, ...])
+@example
+ out[0, 0, ...] = 2D-DFT(in[0, 0, ...])
+ out[0, 1, ...] = 2D-DFT(in[0, 1, ...])
+ out[1, 0, ...] = 2D-DFT(in[1, 0, ...])
+ out[1, 1, ...] = 2D-DFT(in[1, 1, ...])
+@end example
 
-unless OUT is the same array as IN, in which case OUT will contain the 2D-DFTs
-of the original contents of IN. Otherwise it is assumed that OUT does not alias
-IN.
+If @var{out} is the same array as @var{in}, then @var{out} will contain the
+2D-DFTs of the original contents of @var{in}. Otherwise it is assumed that
+@var{out} does not alias @var{in} and if it does, then the contents of both
+@var{out} and @var{in} become unspecified.
 
-See http://www.fftw.org/doc/FFTW-Reference.html for more information."
+This function returns the output array @var{out}.
+
+See http://www.fftw.org/doc/FFTW-Reference.html for more information.
+
+See also: fttw-dft
+"
 
   (unless (<= 0 k (array-rank in))
     (throw 'fftw-bad-rank k (array-rank in)))
@@ -100,18 +110,18 @@ See http://www.fftw.org/doc/FFTW-Reference.html for more information."
                 (bytevector->pointer (shared-array-root out) (* (shared-array-offset out) (sizeof double) 2))
                 sign FFTW-ESTIMATE)))
     (fftw_execute plan)
-    (fftw_destroy_plan plan)))
+    (fftw_destroy_plan plan)
+    out))
 
 (define (fftw-dft k sign in)
-  "fftw-dft k sign in
+  "Compute @var{k}-dimensional DFTs of 'c64 array @var{in}, with given
+@var{sign}, and return the result in a new 'c64 array of the same shape as
+@var{in}.
 
-Compute K-dimensional DFTs of 'c64 array IN, with given SIGN, and return the
-result in a new 'c64 array of the same shape as IN.
-
-See the documentation of fftw-dft! for more information."
+See also: fttw-dft!
+"
 
   (let ((out (apply make-typed-array 'c64 *unspecified* (array-dimensions in))))
-    (fftw-dft! k sign in out)
-    out))
+    (fftw-dft! k sign in out)))
 
 (export fftw-dft fftw-dft! FFTW-FORWARD FFTW-BACKWARD)
