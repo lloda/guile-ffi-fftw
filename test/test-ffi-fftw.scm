@@ -10,7 +10,6 @@
 
 (import (ffi fftw) (srfi srfi-64) (srfi srfi-1))
 
-(set! test-log-to-file #f)
 (test-begin "ffi-fftw")
 
 ; Various sorts of arrays.
